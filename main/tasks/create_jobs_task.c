@@ -23,14 +23,24 @@ void create_jobs_task(void *pvParameters)
 
     GlobalState *GLOBAL_STATE = (GlobalState *)pvParameters;
 
+    unsigned long long prev1 = 1;
+    unsigned long long prev2 = 0;
+
     while (1)
     {
         mining_notify *mining_notification = (mining_notify *)queue_dequeue(&GLOBAL_STATE->stratum_queue);
         ESP_LOGI(TAG, "New Work Dequeued %s", mining_notification->job_id);
 
-        unsigned long long prev2 = 13530;
-        unsigned long long prev1 = 21892;
-        uint32_t extranonce_2 = prev1;        
+        uint32_t extranonce_2 = 0;      
+        extranonce_2 = next_fibonacci(&prev1, &prev2);
+
+        if(extranonce_2 >= UINT_MAX)
+        {
+            prev1 = 1;
+            prev2 = 0;
+            extranonce_2 = next_fibonacci(&prev1, &prev2);
+        }
+        
         while (GLOBAL_STATE->stratum_queue.count < 1 && extranonce_2 < UINT_MAX && GLOBAL_STATE->abandon_work == 0)
         {
             
@@ -54,7 +64,7 @@ void create_jobs_task(void *pvParameters)
             free(coinbase_tx);
             free(merkle_root);
             free(extranonce_2_str);
-            extranonce_2 = next_fibonacci(&prev1, &prev2);            
+            extranonce_2++;            
         }
 
         if (GLOBAL_STATE->abandon_work == 1)
