@@ -10,12 +10,16 @@
 
 static const char *TAG = "create_jobs_task";
 
-unsigned long long generate_random_extranonce() {
+uint32_t generate_random_extranonce() {
     struct timeval tv;
     gettimeofday(&tv, NULL);    
     unsigned long long seed = tv.tv_sec * 1000000ULL + tv.tv_usec;    
-    srand(seed);    
-    return (unsigned long long)rand() << 32 | rand();
+    srand((unsigned int)seed);    
+    return (uint32_t)rand();
+}
+
+uint32_t flip_bit(uint32_t n, int bit) {
+    return n ^ (1U << bit);
 }
 
 
@@ -30,6 +34,7 @@ void create_jobs_task(void *pvParameters)
         ESP_LOGI(TAG, "New Work Dequeued %s", mining_notification->job_id);
 
         uint32_t extranonce_2 = generate_random_extranonce();
+        i = 0;
         while (GLOBAL_STATE->stratum_queue.count < 1 && extranonce_2 < UINT_MAX && GLOBAL_STATE->abandon_work == 0)
         {
             
@@ -53,7 +58,8 @@ void create_jobs_task(void *pvParameters)
             free(coinbase_tx);
             free(merkle_root);
             free(extranonce_2_str);
-            extranonce_2++;
+            extranonce_2 = flip_bit(extranonce, i);
+            i++;
         }
 
         if (GLOBAL_STATE->abandon_work == 1)
