@@ -58,7 +58,7 @@ void create_jobs_task(void *pvParameters)
             free(coinbase_tx);
             free(merkle_root);
             free(extranonce_2_str);
-            extranonce_2 = flip_bit(extranonce, i);
+            extranonce_2 = flip_bit(extranonce_2, i);
             i++;
         }
 
