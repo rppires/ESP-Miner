@@ -23,8 +23,8 @@ void create_jobs_task(void *pvParameters)
         uint32_t extranonce_2 = 10;
         while (GLOBAL_STATE->stratum_queue.count < 1 && extranonce_2 < UINT_MAX && GLOBAL_STATE->abandon_work == 0)
         {
-
-            ESP_LOGI(TAG, "new call extranonce_2 -> %u", extranonce_2);
+            
+            ESP_LOGI(TAG, "new call extranonce_2 %lu", (unsigned long)extranonce_2);
 
             char *extranonce_2_str = extranonce_2_generate(extranonce_2, GLOBAL_STATE->extranonce_2_len);            
 
