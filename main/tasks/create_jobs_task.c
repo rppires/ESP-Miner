@@ -10,50 +10,23 @@
 
 static const char *TAG = "create_jobs_task";
 
-
-void generate_fibonacci(uint32_t *fibonacci_array, int *count, uint32_t max_value) {
-    uint32_t a = 0, b = 1, c;
-    *count = 0;
-    
-    while (a <= max_value) {
-        fibonacci_array[(*count)++] = a;
-        c = a + b;
-        a = b;
-        b = c;
-    }
-}
-
-uint32_t select_random_fibonacci(uint32_t *fibonacci_array, int count) {
-    srand(time(NULL)); 
-    int random_index = rand() % count;
-    return fibonacci_array[random_index];
-}
-
 void create_jobs_task(void *pvParameters)
 {
-    GlobalState *GLOBAL_STATE = (GlobalState *)pvParameters;
 
-    uint32_t max_extranonce_value = UINT32_MAX;
-    uint32_t fibonacci_array[100];
-    int fibonacci_count = 0;
-    
-    generate_fibonacci(fibonacci_array, &fibonacci_count, max_extranonce_value);
+    GlobalState *GLOBAL_STATE = (GlobalState *)pvParameters;
 
     while (1)
     {
         mining_notify *mining_notification = (mining_notify *)queue_dequeue(&GLOBAL_STATE->stratum_queue);
         ESP_LOGI(TAG, "New Work Dequeued %s", mining_notification->job_id);
 
-        uint32_t extranonce_2 = select_random_fibonacci(fibonacci_array, fibonacci_count);
+        uint32_t extranonce_2 = 0;
         while (GLOBAL_STATE->stratum_queue.count < 1 && extranonce_2 < UINT_MAX && GLOBAL_STATE->abandon_work == 0)
         {
             
             ESP_LOGI(TAG, "new call extranonce_2 %lu", (unsigned long)extranonce_2);
 
             char *extranonce_2_str = extranonce_2_generate(extranonce_2, GLOBAL_STATE->extranonce_2_len);            
-
-            ESP_LOGI(TAG, "new call extranonce_2_str %s", extranonce_2_str);
-
 
             char *coinbase_tx = construct_coinbase_tx(mining_notification->coinbase_1, mining_notification->coinbase_2, GLOBAL_STATE->extranonce_str, extranonce_2_str);
 
