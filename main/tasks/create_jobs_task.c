@@ -34,7 +34,7 @@ void create_jobs_task(void *pvParameters)
         ESP_LOGI(TAG, "New Work Dequeued %s", mining_notification->job_id);
 
         uint32_t extranonce_2 = generate_random_extranonce();
-        i = 0;
+        uint32_t i = 0;
         while (GLOBAL_STATE->stratum_queue.count < 1 && extranonce_2 < UINT_MAX && GLOBAL_STATE->abandon_work == 0)
         {
             
