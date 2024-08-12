@@ -10,37 +10,26 @@
 
 static const char *TAG = "create_jobs_task";
 
-
-unsigned long long next_fibonacci(unsigned long long *prev1, unsigned long long *prev2) {
-    unsigned long long next = *prev1 + *prev2;
-    *prev2 = *prev1;
-    *prev1 = next;
-    return next;
+unsigned long long generate_random_extranonce() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);    
+    unsigned long long seed = tv.tv_sec * 1000000ULL + tv.tv_usec;    
+    srand(seed);    
+    return (unsigned long long)rand() << 32 | rand();
 }
+
 
 void create_jobs_task(void *pvParameters)
 {
 
     GlobalState *GLOBAL_STATE = (GlobalState *)pvParameters;
 
-    unsigned long long prev1 = 1;
-    unsigned long long prev2 = 0;
-
     while (1)
     {
         mining_notify *mining_notification = (mining_notify *)queue_dequeue(&GLOBAL_STATE->stratum_queue);
         ESP_LOGI(TAG, "New Work Dequeued %s", mining_notification->job_id);
 
-        uint32_t extranonce_2 = 0;      
-        extranonce_2 = next_fibonacci(&prev1, &prev2);
-
-        if(extranonce_2 >= UINT_MAX)
-        {
-            prev1 = 1;
-            prev2 = 0;
-            extranonce_2 = next_fibonacci(&prev1, &prev2);
-        }
-        
+        uint32_t extranonce_2 = generate_random_extranonce();
         while (GLOBAL_STATE->stratum_queue.count < 1 && extranonce_2 < UINT_MAX && GLOBAL_STATE->abandon_work == 0)
         {
             
@@ -64,7 +53,7 @@ void create_jobs_task(void *pvParameters)
             free(coinbase_tx);
             free(merkle_root);
             free(extranonce_2_str);
-            extranonce_2++;            
+            extranonce_2++;
         }
 
         if (GLOBAL_STATE->abandon_work == 1)
